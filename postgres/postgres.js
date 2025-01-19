@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize";
 import { createUserModel, createRoleModel } from "../model/userSchema.js";
+import { createProgress, createToDoListModel } from "../model/todoList.js";
 
 const sequelize = new Sequelize('postgres', 'postgres', '1234', {
 	host: 'localhost',
@@ -8,6 +9,8 @@ const sequelize = new Sequelize('postgres', 'postgres', '1234', {
 
 let UserModel = null;
 let RoleModel = null;
+let ProgressModel = null;
+let TodoListModel = null;
 const connection = async()=>{
 	try {
 		await sequelize.authenticate();
@@ -15,6 +18,8 @@ const connection = async()=>{
 
 		RoleModel = await createRoleModel(sequelize)
 		UserModel = await createUserModel(sequelize)
+		ProgressModel = await createProgress(sequelize)
+		TodoListModel = await createToDoListModel(sequelize)
 		
 		await sequelize.sync();
 		console.log('database Synce');
@@ -23,6 +28,7 @@ const connection = async()=>{
 	}
 }
 
-export { connection, UserModel 
+export {
+	connection, UserModel, ProgressModel, TodoListModel
 
 }
