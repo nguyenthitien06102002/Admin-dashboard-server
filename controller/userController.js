@@ -1,6 +1,8 @@
 import { where } from "sequelize"
 import { UserModel } from "../postgres/postgres.js"
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+
 
 export const getAllEmp=async(req,res)=>{
 	try{
@@ -17,21 +19,34 @@ export const getAllEmp=async(req,res)=>{
 }
 
 
-export const addEmp=async(req, res) => {
-	const {name, email, password, role_id, status_user} = req.body;
-	try{
-		const emp = await UserModel.findOne({where: {email: email}})
-		if(emp==null){
-			await UserModel.create(req.body);
-			return res.status(201).json({message: "User created successfully"})
+export const addEmp = async (req, res) => {
+	
+	const { name, email, password, role_id, status_user } = req.body;
 
+	try {
+		const emp = await UserModel.findOne({ where: { email: email } });
+
+		if (emp === null) {	
+			const hashedPassword = await bcrypt.hash(password, 10); 
+			const newUser = {
+				name,
+				email,
+				password: hashedPassword,
+				role_id,
+				status_user,
+			};
+
+			await UserModel.create(newUser);
+
+			return res.status(201).json({ message: "User created successfully" });
 		}
-		return res.status(200).json({ message: "already found" })
-	}catch(e){
-		console.log(e)
-		return res.status(200).json({ "error": "Internal server error" })
+
+		return res.status(200).json({ message: "User already exists" });
+	} catch (e) {
+		console.log(e);
+		return res.status(500).json({ error: "Internal server error" });
 	}
-}
+};
 
 
 export const loginUser = async (req, res) => {
@@ -45,8 +60,8 @@ export const loginUser = async (req, res) => {
 		}
 
 		
-		// const isMatch = await bcrypt.compare(password, user.password);
-		const isMatch = password === user.password;
+		const isMatch = await bcrypt.compare(password, user.password);
+		// const isMatch = password === user.password;
 		if (!isMatch) {
 			return res.status(400).json({ message: "Invalid credentials" });
 		}
@@ -54,8 +69,10 @@ export const loginUser = async (req, res) => {
 		// Tạo JWT token
 		const payload = {
 			userId: user.id,
+			userName: user.name,
 			role: user.role_id,
 			email: user.email,
+
 		};
 
 		const token = jwt.sign(payload, 'yourSecretKey', { expiresIn: '1h' });
