@@ -158,11 +158,17 @@ export const createOrderModel = async (sequelize) => {
 				key: 'id'
 			}
 		},
+		sku: {
+			type: DataTypes.STRING,
+			allowNull: false,
+			unique: true
+		},
 		order_active: {
 			type: DataTypes.INTEGER,
 			allowNull: false,
 			defaultValue: 0
 		}
+		//order_active = 2 : đã xóa
 
 
 	});

@@ -1,10 +1,10 @@
 import express from 'express';
 import { getAllEmp, addEmp, loginUser } from '../controller/userController.js';
 import { authenticateJWT, authorizeRole } from '../jwt/jsonwebtoken.js';
-import { addProgress, addTodoList, getAllProgress } from '../controller/todoListController.js';
+import { addProgress, addTodoList, getAllProgress, getAllTodolist, updateTodoListActive } from '../controller/todoListController.js';
 import { uploadImage } from '../controller/imageController.js';
 import upload from '../middleware/upload.js';
-import { addFulfillment, addItemOrder, addOrder, addOrderStatus, addPNGStatus, addTracking, getAllFulfillment, getAllItemOrder, getAllOrderStatus, getAllPNGStatus, getAllTracking } from '../controller/orderController.js';
+import { addFulfillment, addItemOrder, addOrder, addOrderStatus, addPNGStatus, addTracking, getAllFulfillment, getAllItemOrder, getAllOrder, getAllOrderStatus, getAllPNGStatus, getAllTracking, updateOrderActive } from '../controller/orderController.js';
 
 
 
@@ -35,6 +35,8 @@ router.get("/getTracking", authenticateJWT, getAllTracking);
 router.post("/addPNGStatus", authenticateJWT, authorizeRole(1), addPNGStatus);
 router.get("/getPNGStatus", authenticateJWT, getAllPNGStatus);
 router.post("/addOrder", authenticateJWT, addOrder);
-
-
+router.get("/allListToDo", authenticateJWT, getAllTodolist);
+router.get("/allOrder", authenticateJWT, getAllOrder);
+router.put("/updateOrderActive/:orderId", authenticateJWT, updateOrderActive);
+router.put("/updateTodoListActive/:todoListId", authenticateJWT, updateTodoListActive);
 export default router;

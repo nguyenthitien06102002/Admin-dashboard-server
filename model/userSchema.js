@@ -54,6 +54,11 @@ export const createUserModel = async (sequelize) => {
 			defaultValue: '0'
 		}
 	});
+	User.associate = (models) => {
+		User.hasMany(models.TodoList, { foreignKey: 'createBy', as: 'createdTasks' });
+		User.hasMany(models.TodoList, { foreignKey: 'asignedTo', as: 'assignedTasks' });
+	};
+	
 	return User;
 };
 

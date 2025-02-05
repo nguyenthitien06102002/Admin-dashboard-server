@@ -1,5 +1,7 @@
 import { where } from "sequelize";
-import { FulfillmentModel, ItemOrderModel, OrderModel, OrderStatusModel, PNGStatusModel, TrackingModel } from "../postgres/postgres.js";
+import { Op } from "sequelize";
+import { v4 as uuidv4 } from 'uuid';
+import { FulfillmentModel, ImagesModel, ItemOrderModel, OrderModel, OrderStatusModel, PNGStatusModel, TrackingModel, UserModel } from "../postgres/postgres.js";
 
 export const addOrderStatus = async (req, res) => {
 	const { order_status_name, order_status_active } = req.body; 
@@ -202,7 +204,7 @@ export const getAllPNGStatus = async (req, res) => {
 
 
 export const addOrder = async (req, res) => {
-	const { order_status, fulfillment, design_note, order_note, item_name, quantity, revenue, base_cost, fee, tracking_status, png_status, order_active } = req.body;
+	const { order_status, fulfillment, design_note, order_note, item_name, quantity, revenue, base_cost, fee, tracking_status, png_status,sku, order_active } = req.body;
 
 	try {
 		const createBy = req.user.userId;
@@ -211,7 +213,7 @@ export const addOrder = async (req, res) => {
 		if (!createBy) {
 			return res.status(403).json({ error: "Unauthorized: User ID not found" });
 		}
-
+		const randomSku = sku || uuidv4();
 		const newOrder = {
 			createBy: createBy,
 			order_status: order_status,
@@ -225,6 +227,7 @@ export const addOrder = async (req, res) => {
 			fee: fee,
 			tracking_status: tracking_status,
 			png_status: png_status,
+			sku: sku || randomSku,
 			order_active: order_active || 1,
 		};
 
@@ -247,4 +250,74 @@ export const addOrder = async (req, res) => {
 	}
 };
 
+export const getAllOrder = async (req, res) => {
+	try {
+		const order = await OrderModel.findAll({
+			where: {
+				order_active: { [Op.ne]: 2 } // Lọc ra những đơn hàng có order_active khác 2
+			},
+			include: [
+				{
+					model: UserModel,
+					as: 'createByuser'
+				},
+				{
+					model: OrderStatusModel,
+					as: 'OrderStatus'
+				},
+				{
+					model: FulfillmentModel,
+					as: 'Fulfillments'
+				},
+				{
+					model: ItemOrderModel,
+					as: 'itemName'
+				},
+				{
+					model: TrackingModel,
+					as: 'trackingStatus'
+				},
+				{
+					model: PNGStatusModel,
+					as: 'pngStatus'
+				},
+				{
+					model: ImagesModel,
+					as: 'images'
+				},
+			]
+		});
+		if (order.length == 0) {
+			return res.status(200).json({ "error": "order not found" })
+		}
+		return res.status(200).json(order)
 
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({ "error": "Internal server error" })
+	}
+}
+
+export const updateOrderActive = async (req, res) => {
+	const { orderId } = req.params; 
+	const { order_active } = req.body; 
+
+	try {
+		const order = await OrderModel.findByPk(orderId);
+		if (!order) {
+			return res.status(404).json({ error: "Order not found" });
+		}
+		order.order_active = order_active;
+		await order.save();
+
+		return res.status(200).json({
+			message: "Order status updated successfully",
+			order_id: order.id,
+			order_active: order.order_active
+		});
+
+	} catch (e) {
+		console.error(e);
+		return res.status(500).json({ error: "Internal server error" });
+	}
+};

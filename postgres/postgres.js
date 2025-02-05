@@ -36,6 +36,34 @@ const connection = async()=>{
 		TrackingModel = await createTracking(sequelize)
 		PNGStatusModel = await createPNGStatus(sequelize)
 		OrderModel = await createOrderModel(sequelize)
+
+		UserModel.associate({ TodoList: TodoListModel });  // Liên kết User với TodoList
+		TodoListModel.associate({ User: UserModel });
+		// ProgressModel.associate({ TodoList: TodoListModel});
+
+		ProgressModel.hasMany(TodoListModel, { foreignKey: 'type', as: 'progressTodos' });
+		TodoListModel.belongsTo(ProgressModel, { foreignKey: 'type', as: 'progress' });
+
+		UserModel.hasMany(OrderModel, { foreignKey: 'createBy', as: 'createByuser' });
+		OrderModel.belongsTo(UserModel, { foreignKey : 'createBy', as: 'createByuser' });
+
+		OrderStatusModel.hasMany(OrderModel, { foreignKey: 'order_status', as: 'OrderStatus' });
+		OrderModel.belongsTo(OrderStatusModel, { foreignKey: 'order_status', as: 'OrderStatus' });
+
+		FulfillmentModel.hasMany(OrderModel, { foreignKey: 'fulfillment', as: 'Fulfillments' });
+		OrderModel.belongsTo(FulfillmentModel, { foreignKey: 'fulfillment', as: 'Fulfillments' });
+
+		ItemOrderModel.hasMany(OrderModel, { foreignKey: 'item_name', as: 'itemName' });
+		OrderModel.belongsTo(ItemOrderModel, { foreignKey: 'item_name', as: 'itemName' });
+
+		TrackingModel.hasMany(OrderModel, { foreignKey: 'tracking_status', as: 'trackingStatus' });
+		OrderModel.belongsTo(TrackingModel, { foreignKey: 'tracking_status', as: 'trackingStatus' });
+
+		PNGStatusModel.hasMany(OrderModel, { foreignKey: 'png_status', as: 'pngStatus' });
+		OrderModel.belongsTo(PNGStatusModel, { foreignKey: 'png_status', as: 'pngStatus' });
+
+		OrderModel.hasMany(ImagesModel, { foreignKey: 'order_id', as: 'images' });
+		ImagesModel.belongsTo(OrderModel, { foreignKey: 'order_id', as: 'images' });
 		
 		await sequelize.sync();
 		console.log('database Synce');
