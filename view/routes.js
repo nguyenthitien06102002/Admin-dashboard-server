@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllEmp, addEmp, loginUser } from '../controller/userController.js';
+import { getAllEmp, addEmp, loginUser, getRoles } from '../controller/userController.js';
 import { authenticateJWT, authorizeRole } from '../jwt/jsonwebtoken.js';
 import { addProgress, addTodoList, getAllProgress, getAllTodolist, updateTodoListActive } from '../controller/todoListController.js';
 import { uploadImage } from '../controller/imageController.js';
@@ -12,7 +12,8 @@ const router = express.Router();
 
 
 router.get("/getAll", authenticateJWT, getAllEmp);
-router.post("/addEmp", addEmp);
+router.get("/getRoles", getRoles);
+router.post("/addEmp", authenticateJWT, authorizeRole(1), addEmp);
 router.post("/api/login", loginUser);
 router.post("/addProgress", authenticateJWT, addProgress); 
 router.get("/api/getAllProgress", authenticateJWT, getAllProgress);

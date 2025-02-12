@@ -64,6 +64,9 @@ const connection = async()=>{
 
 		OrderModel.hasMany(ImagesModel, { foreignKey: 'order_id', as: 'images' });
 		ImagesModel.belongsTo(OrderModel, { foreignKey: 'order_id', as: 'images' });
+
+		RoleModel.hasMany(UserModel, { foreignKey: 'role_id', as: 'roleDetail' });
+		UserModel.belongsTo(RoleModel, { foreignKey: 'role_id', as: 'roleDetail' });
 		
 		await sequelize.sync();
 		console.log('database Synce');
@@ -73,6 +76,6 @@ const connection = async()=>{
 }
 
 export {
-	connection, UserModel, ProgressModel, TodoListModel, ImagesModel, OrderStatusModel, FulfillmentModel, ItemOrderModel, TrackingModel, PNGStatusModel, OrderModel
+	connection, UserModel, ProgressModel, TodoListModel, ImagesModel, OrderStatusModel, FulfillmentModel, ItemOrderModel, TrackingModel, PNGStatusModel, OrderModel, RoleModel
 
 }

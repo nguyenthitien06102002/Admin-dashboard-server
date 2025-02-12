@@ -1,12 +1,22 @@
 import { where } from "sequelize"
-import { UserModel } from "../postgres/postgres.js"
+import { RoleModel, UserModel } from "../postgres/postgres.js"
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-
+import { Op } from "sequelize";
 
 export const getAllEmp=async(req,res)=>{
 	try{
-		const users= await UserModel.findAll()
+		const users= await UserModel.findAll({
+			where: {
+				status_user: { [Op.ne]: '2' } 
+			},
+			include: [
+				{
+					model: RoleModel,
+					as: 'roleDetail'
+				}
+			]
+		})
 		if(users.length==0){
 			return res.status(200).json({"error":"user not found"})
 		}
@@ -20,33 +30,56 @@ export const getAllEmp=async(req,res)=>{
 
 
 export const addEmp = async (req, res) => {
-	
 	const { name, email, password, role_id, status_user } = req.body;
 
 	try {
-		const emp = await UserModel.findOne({ where: { email: email } });
-
-		if (emp === null) {	
-			const hashedPassword = await bcrypt.hash(password, 10); 
-			const newUser = {
-				name,
-				email,
-				password: hashedPassword,
-				role_id,
-				status_user,
-			};
-
-			await UserModel.create(newUser);
-
-			return res.status(201).json({ message: "User created successfully" });
+		if (role_id === 1) {
+			return res.status(403).json({ error: "Không thể tạo tài khoản với quyền này!" });
 		}
 
-		return res.status(200).json({ message: "User already exists" });
+
+		const emp = await UserModel.findOne({ where: { email: email } });
+
+		if (emp) {
+			return res.status(409).json({ error: "Email đã tồn tại!" });
+		}
+
+		// Mã hóa mật khẩu và tạo user mới
+		const hashedPassword = await bcrypt.hash(password, 10);
+		const newUser = {
+			name,
+			email,
+			password: hashedPassword,
+			role_id,
+			status_user,
+		};
+
+		await UserModel.create(newUser);
+
+		return res.status(201).json({ message: "Tạo tài khoản thành công!" });
 	} catch (e) {
 		console.log(e);
-		return res.status(500).json({ error: "Internal server error" });
+		return res.status(500).json({ error: "Lỗi máy chủ nội bộ!" });
 	}
 };
+
+export const getRoles = async (req, res) => {
+	try {
+		const roles = await RoleModel.findAll({
+			where: {
+				role_id: { [Op.ne]: 1 }
+			}
+		})
+		if (roles.length == 0) {
+			return res.status(200).json({ "error": "role not found" })
+		}
+		return res.status(200).json(roles)
+
+	} catch (error) {
+		console.log(error)
+		return res.status(200).json({ "error": "Internal server error" })
+	}
+}
 
 
 export const loginUser = async (req, res) => {
