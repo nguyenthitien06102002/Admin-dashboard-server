@@ -118,3 +118,30 @@ export const loginUser = async (req, res) => {
 		return res.status(500).json({ message: "Internal server error" });
 	}
 };
+
+export const updateStatusUser = async (req, res) => {
+	const { userId } = req.params;
+	const { status_user } = req.body;
+
+	try {
+		const user = await UserModel.findByPk(userId);
+		if (!user) {
+			return res.status(404).json({ error: "user not found" });
+		}
+		if (user.role_id === 1) {
+			return res.status(403).json({ error: "Cannot update status of this user" });
+		}
+		user.status_user = status_user;
+		await user.save();
+
+		return res.status(200).json({
+			message: "user status updated successfully",
+			order_id: user.id,
+			order_active: user.status_user
+		});
+
+	} catch (e) {
+		console.error(e);
+		return res.status(500).json({ error: "Internal server error" });
+	}
+};

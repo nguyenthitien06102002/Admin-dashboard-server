@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllEmp, addEmp, loginUser, getRoles } from '../controller/userController.js';
+import { getAllEmp, addEmp, loginUser, getRoles, updateStatusUser } from '../controller/userController.js';
 import { authenticateJWT, authorizeRole } from '../jwt/jsonwebtoken.js';
 import { addProgress, addTodoList, getAllProgress, getAllTodolist, updateTodoListActive } from '../controller/todoListController.js';
 import { uploadImage } from '../controller/imageController.js';
@@ -40,4 +40,5 @@ router.get("/allListToDo", authenticateJWT, getAllTodolist);
 router.get("/allOrder", authenticateJWT, getAllOrder);
 router.put("/updateOrderActive/:orderId", authenticateJWT, updateOrderActive);
 router.put("/updateTodoListActive/:todoListId", authenticateJWT, updateTodoListActive);
+router.put("/updateStatusUser/:userId", authenticateJWT, updateStatusUser);
 export default router;
